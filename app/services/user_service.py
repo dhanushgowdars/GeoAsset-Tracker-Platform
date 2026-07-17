@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from app.core.jwt import create_access_token
+from app.core.security import verify_password
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
 
@@ -16,3 +18,25 @@ class UserService:
             raise ValueError("Username already exists")
 
         return UserRepository.create(db, user)
+
+    @staticmethod
+    def login_user(db: Session, email: str, password: str):
+        user = UserRepository.authenticate(db, email)
+
+        if not user:
+            raise ValueError("Invalid email or password")
+
+        if not verify_password(password, user.hashed_password):
+            raise ValueError("Invalid email or password")
+
+        token = create_access_token(
+            {
+                "sub": str(user.id),
+                "email": user.email,
+            }
+        )
+
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+        }

@@ -1,9 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import List
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.auth.dependencies import get_current_user
 from app.database.session import get_db
-from app.schemas.asset import AssetCreate, AssetResponse, AssetUpdate
+from app.auth.dependencies import get_current_user
+from app.models.user import User
+from app.schemas.asset import (
+    AssetCreate,
+    AssetResponse,
+    AssetUpdate,
+    NearbyAssetResponse,
+    DistanceResponse,
+    BoundingBoxResponse,
+    GeofenceRequest,
+)
 from app.services.asset_service import AssetService
 
 router = APIRouter(
@@ -12,98 +23,239 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=AssetResponse)
+# ==========================================================
+# CRUD ENDPOINTS
+# ==========================================================
+
+
+@router.post(
+    "/",
+    response_model=AssetResponse,
+    status_code=201,
+)
 def create_asset(
     asset: AssetCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return AssetService.create_asset(
-        db,
-        asset,
-        int(current_user["sub"]),
+        db=db,
+        asset=asset,
+        current_user=current_user,
     )
 
 
-@router.get("/", response_model=list[AssetResponse])
-def get_assets(
+@router.get(
+    "/",
+    response_model=List[AssetResponse],
+)
+def get_all_assets(
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return AssetService.get_all_assets(
-        db,
-        int(current_user["sub"]),
+        db=db,
+        current_user=current_user,
     )
 
 
-@router.get("/{asset_id}", response_model=AssetResponse)
+# ==========================================================
+# GEOSPATIAL ENDPOINTS
+# ==========================================================
+@router.get(
+    "/nearby",
+    response_model=list[NearbyAssetResponse],
+)
+def get_nearby_assets(
+    latitude: float = Query(
+        ...,
+        description="Current latitude",
+    ),
+    longitude: float = Query(
+        ...,
+        description="Current longitude",
+    ),
+    radius_km: float = Query(
+        ...,
+        gt=0,
+        description="Search radius in kilometers",
+    ),
+    limit: int = Query(
+        20,
+        ge=1,
+        le=100,
+    ),
+    offset: int = Query(
+        0,
+        ge=0,
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get all assets within a specified radius.
+    """
+
+    return AssetService.get_nearby_assets(
+        db=db,
+        current_user=current_user,
+        latitude=latitude,
+        longitude=longitude,
+        radius_km=radius_km,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get(
+    "/nearest",
+    response_model=NearbyAssetResponse,
+)
+def get_nearest_asset(
+    latitude: float = Query(
+        ...,
+        description="Current latitude",
+    ),
+    longitude: float = Query(
+        ...,
+        description="Current longitude",
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get the nearest asset to the given location.
+    """
+
+    return AssetService.get_nearest_asset(
+        db=db,
+        current_user=current_user,
+        latitude=latitude,
+        longitude=longitude,
+    )
+
+
+@router.get(
+    "/{asset_id}/distance",
+    response_model=DistanceResponse,
+)
+def calculate_distance(
+    asset_id: int,
+    latitude: float = Query(
+        ...,
+        description="Current latitude",
+    ),
+    longitude: float = Query(
+        ...,
+        description="Current longitude",
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Calculate the distance from the given location
+    to a specific asset.
+    """
+
+    return AssetService.calculate_distance(
+        db=db,
+        current_user=current_user,
+        asset_id=asset_id,
+        latitude=latitude,
+        longitude=longitude,
+    )
+
+
+@router.get(
+    "/bbox",
+    response_model=list[BoundingBoxResponse],
+)
+def get_assets_in_bounding_box(
+    min_latitude: float = Query(...),
+    min_longitude: float = Query(...),
+    max_latitude: float = Query(...),
+    max_longitude: float = Query(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get all assets inside a bounding box.
+    """
+
+    return AssetService.get_assets_in_bounding_box(
+        db=db,
+        current_user=current_user,
+        min_latitude=min_latitude,
+        min_longitude=min_longitude,
+        max_latitude=max_latitude,
+        max_longitude=max_longitude,
+    )
+
+
+@router.post(
+    "/geofence",
+    response_model=list[AssetResponse],
+)
+def get_assets_in_geofence(
+    request: GeofenceRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get all assets inside a custom polygon.
+    """
+
+    return AssetService.get_assets_in_geofence(
+        db=db,
+        current_user=current_user,
+        polygon_points=request.coordinates,
+    )
+
+
+@router.get(
+    "/{asset_id}",
+    response_model=AssetResponse,
+)
 def get_asset(
     asset_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    asset = AssetService.get_asset_by_id(
-        db,
-        asset_id,
-        int(current_user["sub"]),
+    return AssetService.get_asset(
+        db=db,
+        asset_id=asset_id,
+        current_user=current_user,
     )
 
-    if not asset:
-        raise HTTPException(
-            status_code=404,
-            detail="Asset not found",
-        )
 
-    return asset
-
-
-@router.put("/{asset_id}", response_model=AssetResponse)
+@router.put(
+    "/{asset_id}",
+    response_model=AssetResponse,
+)
 def update_asset(
     asset_id: int,
-    asset_update: AssetUpdate,
+    asset: AssetUpdate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    db_asset = AssetService.get_asset_by_id(
-        db,
-        asset_id,
-        int(current_user["sub"]),
-    )
-
-    if not db_asset:
-        raise HTTPException(
-            status_code=404,
-            detail="Asset not found",
-        )
-
     return AssetService.update_asset(
-        db,
-        db_asset,
-        asset_update,
+        db=db,
+        asset_id=asset_id,
+        asset_update=asset,
+        current_user=current_user,
     )
 
 
-@router.delete("/{asset_id}")
+@router.delete(
+    "/{asset_id}",
+)
 def delete_asset(
     asset_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    db_asset = AssetService.get_asset_by_id(
-        db,
-        asset_id,
-        int(current_user["sub"]),
+    return AssetService.delete_asset(
+        db=db,
+        asset_id=asset_id,
+        current_user=current_user,
     )
-
-    if not db_asset:
-        raise HTTPException(
-            status_code=404,
-            detail="Asset not found",
-        )
-
-    AssetService.delete_asset(
-        db,
-        db_asset,
-    )
-
-    return {"message": "Asset deleted successfully"}

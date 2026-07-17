@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from geoalchemy2 import Geometry
 
 from app.database.base import Base
 
@@ -17,6 +18,15 @@ class Asset(Base):
     latitude = Column(Float, nullable=False)
 
     longitude = Column(Float, nullable=False)
+
+    # PostGIS Point
+    location = Column(
+        Geometry(
+            geometry_type="POINT",
+            srid=4326,
+        ),
+        nullable=False,
+    )
 
     owner_id = Column(
         Integer,

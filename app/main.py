@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+from app.database.session import test_connection
+
 app = FastAPI(
     title="GeoAsset Tracker Platform",
     description="A production-style backend for managing geospatial assets.",
@@ -15,3 +17,8 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+@app.get("/db-test")
+def database_test():
+    return {"database": test_connection()}

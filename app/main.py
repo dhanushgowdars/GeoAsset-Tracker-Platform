@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from app.api.assets import router as asset_router
 from app.database.session import test_connection
 
+from app.api.users import router as user_router
+
 app = FastAPI(
     title="GeoAsset Tracker Platform",
     description="A production-style backend for managing geospatial assets.",
@@ -11,6 +13,7 @@ app = FastAPI(
 
 # Register API routes
 app.include_router(asset_router)
+app.include_router(user_router)
 
 
 @app.get("/")

@@ -18,7 +18,11 @@ def create_asset(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return AssetService.create_asset(db, asset)
+    return AssetService.create_asset(
+        db,
+        asset,
+        int(current_user["sub"]),
+    )
 
 
 @router.get("/", response_model=list[AssetResponse])
@@ -26,7 +30,10 @@ def get_assets(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return AssetService.get_all_assets(db)
+    return AssetService.get_all_assets(
+        db,
+        int(current_user["sub"]),
+    )
 
 
 @router.get("/{asset_id}", response_model=AssetResponse)
@@ -35,7 +42,11 @@ def get_asset(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    asset = AssetService.get_asset_by_id(db, asset_id)
+    asset = AssetService.get_asset_by_id(
+        db,
+        asset_id,
+        int(current_user["sub"]),
+    )
 
     if not asset:
         raise HTTPException(
@@ -53,7 +64,11 @@ def update_asset(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    db_asset = AssetService.get_asset_by_id(db, asset_id)
+    db_asset = AssetService.get_asset_by_id(
+        db,
+        asset_id,
+        int(current_user["sub"]),
+    )
 
     if not db_asset:
         raise HTTPException(
@@ -74,7 +89,11 @@ def delete_asset(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    db_asset = AssetService.get_asset_by_id(db, asset_id)
+    db_asset = AssetService.get_asset_by_id(
+        db,
+        asset_id,
+        int(current_user["sub"]),
+    )
 
     if not db_asset:
         raise HTTPException(
@@ -82,6 +101,9 @@ def delete_asset(
             detail="Asset not found",
         )
 
-    AssetService.delete_asset(db, db_asset)
+    AssetService.delete_asset(
+        db,
+        db_asset,
+    )
 
     return {"message": "Asset deleted successfully"}

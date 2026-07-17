@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database.base import Base
@@ -14,6 +15,12 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False)
 
     hashed_password = Column(String(255), nullable=False)
+
+    assets = relationship(
+        "Asset",
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
 
     created_at = Column(
         DateTime(timezone=True),

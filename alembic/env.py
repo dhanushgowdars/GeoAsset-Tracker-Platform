@@ -6,6 +6,7 @@ from alembic import context
 
 from app.config.settings import settings
 from app.database.base import Base
+import app.models.asset
 
 # Alembic Config object
 config = context.config
@@ -40,8 +41,6 @@ def include_object(object, name, type_, reflected, compare_to):
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in offline mode."""
-
     url = config.get_main_option("sqlalchemy.url")
 
     context.configure(
@@ -58,8 +57,6 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in online mode."""
-
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

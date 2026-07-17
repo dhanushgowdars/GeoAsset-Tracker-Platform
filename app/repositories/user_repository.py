@@ -31,3 +31,7 @@ class UserRepository:
     @staticmethod
     def authenticate(db: Session, email: str):
         return db.query(User).filter(User.email == email).first()
+
+    @staticmethod
+    def get_by_id(db: Session, user_id: int):
+        return db.query(User).filter(User.id == user_id).first()

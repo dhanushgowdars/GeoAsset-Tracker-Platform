@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
+from app.core.roles import UserRole
 from app.database.base import Base
 
 
@@ -16,6 +17,11 @@ class User(Base):
 
     hashed_password = Column(String(255), nullable=False)
 
+    role = Column(
+        Enum(UserRole),
+        nullable=False,
+        default=UserRole.USER,
+    )
     assets = relationship(
         "Asset",
         back_populates="owner",

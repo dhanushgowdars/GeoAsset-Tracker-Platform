@@ -33,6 +33,7 @@ class UserService:
             {
                 "sub": str(user.id),
                 "email": user.email,
+                "role": user.role.value,
             }
         )
 

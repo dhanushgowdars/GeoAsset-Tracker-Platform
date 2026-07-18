@@ -21,7 +21,7 @@ class UserService:
 
     @staticmethod
     def login_user(db: Session, email: str, password: str):
-        user = UserRepository.authenticate(db, email)
+        user = UserRepository.get_by_email(db, email)
 
         if not user:
             raise ValueError("Invalid email or password")

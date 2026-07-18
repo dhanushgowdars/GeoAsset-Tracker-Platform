@@ -14,10 +14,22 @@ class AssetCreate(BaseModel):
     Schema used when creating a new asset.
     """
 
-    name: str = Field(..., max_length=100)
+    name: str = Field(
+        ...,
+        min_length=3,
+        max_length=100,
+    )
     description: Optional[str] = None
-    latitude: float
-    longitude: float
+
+    latitude: float = Field(
+        ge=-90,
+        le=90,
+    )
+
+    longitude: float = Field(
+        ge=-180,
+        le=180,
+    )
 
 
 class AssetUpdate(BaseModel):
@@ -25,10 +37,25 @@ class AssetUpdate(BaseModel):
     Schema used when updating an existing asset.
     """
 
-    name: Optional[str] = Field(default=None, max_length=100)
+    name: Optional[str] = Field(
+        default=None,
+        min_length=3,
+        max_length=100,
+    )
+
     description: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+
+    latitude: Optional[float] = Field(
+        default=None,
+        ge=-90,
+        le=90,
+    )
+
+    longitude: Optional[float] = Field(
+        default=None,
+        ge=-180,
+        le=180,
+    )
 
 
 class AssetResponse(BaseModel):

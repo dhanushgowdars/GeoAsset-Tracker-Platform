@@ -3,7 +3,11 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Dashboard from "../pages/Dashboard/Dashboard";
+import Assets from "../pages/Assets/Assets";
+import Map from "../pages/Map/Map";
+import Settings from "../pages/Settings/Settings";
 import NotFound from "../pages/NotFound/NotFound";
+import AppLayout from "../layouts/AppLayout";
 import { getToken } from "../utils/storage";
 
 function ProtectedRoute({ children }) {
@@ -19,14 +23,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-      <Route
-        path="/dashboard"
-        element={(
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        )}
-      />
+      <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/assets" element={<Assets />} />
+        <Route path="/map" element={<Map />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

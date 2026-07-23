@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.schemas.user import UserCreate, UserLogin, UserProfileResponse, UserResponse
 from app.services.user_service import UserService
 
 from app.auth.dependencies import get_current_user
@@ -45,6 +45,13 @@ def login_user(
             status_code=401,
             detail=str(e),
         )
+
+
+@router.get("/me", response_model=UserProfileResponse)
+def get_my_profile(
+    current_user=Depends(get_current_user),
+):
+    return current_user
 
 
 @router.get("/admin")

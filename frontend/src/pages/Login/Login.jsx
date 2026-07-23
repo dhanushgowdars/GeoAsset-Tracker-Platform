@@ -1,30 +1,23 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import AuthLayout, { PasswordInput } from "../../layouts/AuthLayout";
 import { loginUser } from "../../services/authService";
-import { getToken, saveToken } from "../../utils/storage";
-import "./Login.css";
+import { getApiErrorMessage, validateLoginForm } from "../../utils/authValidation";
+import { saveToken } from "../../utils/storage";
 
 const initialForm = { email: "", password: "" };
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (getToken()) return <Navigate to="/dashboard" replace />;
-
   const validate = () => {
-    const nextErrors = {};
-
-    if (!form.email.trim()) nextErrors.email = "Email is required.";
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) nextErrors.email = "Enter a valid email address.";
-
-    if (!form.password) nextErrors.password = "Password is required.";
-    else if (form.password.length < 8) nextErrors.password = "Password must be at least 8 characters.";
-
+    const nextErrors = validateLoginForm(form);
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -53,28 +46,31 @@ function Login() {
       saveToken(accessToken);
       navigate("/dashboard", { replace: true });
     } catch (error) {
-      const detail = error.response?.data?.detail;
-      setServerError(
-        Array.isArray(detail)
-          ? detail.map((item) => item.msg).join(" ")
-          : detail || error.message || "Unable to sign in. Please try again.",
-      );
+      setServerError(getApiErrorMessage(error, "Unable to sign in. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <main className="auth-page">
-      <section className="auth-card" aria-labelledby="login-title">
-        <div className="auth-brand" aria-hidden="true">GA</div>
-        <p className="auth-eyebrow">GeoAsset Tracker</p>
-        <h1 id="login-title">Welcome back</h1>
-        <p className="auth-subtitle">Sign in to manage your geospatial assets.</p>
+    <AuthLayout
+      eyebrow="GeoAsset Tracker"
+      title="Welcome back"
+      titleId="login-title"
+      description="Sign in to manage your geospatial assets."
+      footer={(
+        <>
+          Don't have an account? <Link to="/register">Register</Link>
+        </>
+      )}
+    >
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        {location.state?.successMessage && (
+          <div className="form-success" role="status">{location.state.successMessage}</div>
+        )}
+        {serverError && <div className="form-alert" role="alert">{serverError}</div>}
 
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          {serverError && <div className="form-alert" role="alert">{serverError}</div>}
-
+        <div className="auth-field">
           <label htmlFor="email">Email address</label>
           <input
             id="email"
@@ -88,27 +84,24 @@ function Login() {
             placeholder="you@example.com"
           />
           {errors.email && <p id="email-error" className="field-error">{errors.email}</p>}
+        </div>
 
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            value={form.password}
-            onChange={handleChange}
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            placeholder="Enter your password"
-          />
-          {errors.password && <p id="password-error" className="field-error">{errors.password}</p>}
+        <PasswordInput
+          id="password"
+          label="Password"
+          autoComplete="current-password"
+          value={form.password}
+          onChange={handleChange}
+          error={errors.password}
+          placeholder="Enter your password"
+        />
 
-          <button className="auth-submit" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
-      </section>
-    </main>
+        <button className="auth-submit" type="submit" disabled={isSubmitting}>
+          {isSubmitting && <span className="button-spinner" aria-hidden="true" />}
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }
 

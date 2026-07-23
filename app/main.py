@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.assets import router as asset_router
 from app.database.session import test_connection
@@ -9,6 +10,14 @@ app = FastAPI(
     title="GeoAsset Tracker Platform",
     description="A production-style backend for managing geospatial assets.",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register API routes

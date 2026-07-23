@@ -1,10 +1,12 @@
 from logging.config import fileConfig
+import os
 
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
 from app.config.settings import settings
+from app.config.test_settings import test_settings
 from app.database.base import Base
 import app.models.asset
 import app.models.user
@@ -12,8 +14,12 @@ import app.models.user
 # Alembic Config object
 config = context.config
 
-# Load database URL from .env
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Choose database based on environment
+database_url = (
+    test_settings.database_url if os.getenv("TESTING") == "1" else settings.database_url
+)
+
+config.set_main_option("sqlalchemy.url", database_url)
 
 # Configure Python logging
 if config.config_file_name is not None:

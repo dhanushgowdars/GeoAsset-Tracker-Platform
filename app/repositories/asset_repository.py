@@ -276,60 +276,59 @@ class AssetRepository:
 
         return assets
 
+    @staticmethod
+    def get_assets_in_geofence(
+        db: Session,
+        owner_id: int,
+        polygon_points: list[list[float]],
+    ):
+        """
+        Returns all assets inside a custom geofence polygon.
 
-@staticmethod
-def get_assets_in_geofence(
-    db: Session,
-    owner_id: int,
-    polygon_points: list[list[float]],
-):
-    """
-    Returns all assets inside a custom geofence polygon.
+        polygon_points format:
+        [
+            [longitude, latitude],
+            [longitude, latitude],
+            ...
+        ]
 
-    polygon_points format:
-    [
-        [longitude, latitude],
-        [longitude, latitude],
-        ...
-    ]
+        Note:
+        The first and last point must be the same to
+        close the polygon. If they are not, this
+        method will automatically close it without
+        modifying the original input list.
+        """
 
-    Note:
-    The first and last point must be the same to
-    close the polygon. If they are not, this
-    method will automatically close it without
-    modifying the original input list.
-    """
+        if len(polygon_points) < 3:
+            raise ValueError("A polygon must contain at least three points.")
 
-    if len(polygon_points) < 3:
-        raise ValueError("A polygon must contain at least three points.")
+        # Create a closed polygon without mutating the original input
+        if polygon_points[0] == polygon_points[-1]:
+            closed_polygon = polygon_points
+        else:
+            closed_polygon = polygon_points + [polygon_points[0]]
 
-    # Create a closed polygon without mutating the original input
-    if polygon_points[0] == polygon_points[-1]:
-        closed_polygon = polygon_points
-    else:
-        closed_polygon = polygon_points + [polygon_points[0]]
-
-    polygon_coordinates = ", ".join(
-        f"{longitude} {latitude}" for longitude, latitude in closed_polygon
-    )
-
-    polygon_wkt = f"POLYGON(({polygon_coordinates}))"
-
-    polygon = func.ST_GeomFromText(
-        polygon_wkt,
-        4326,
-    )
-
-    assets = (
-        db.query(Asset)
-        .filter(
-            Asset.owner_id == owner_id,
-            func.ST_Contains(
-                polygon,
-                Asset.location,
-            ),
+        polygon_coordinates = ", ".join(
+            f"{longitude} {latitude}" for longitude, latitude in closed_polygon
         )
-        .all()
-    )
 
-    return assets
+        polygon_wkt = f"POLYGON(({polygon_coordinates}))"
+
+        polygon = func.ST_GeomFromText(
+            polygon_wkt,
+            4326,
+        )
+
+        assets = (
+            db.query(Asset)
+            .filter(
+                Asset.owner_id == owner_id,
+                func.ST_Contains(
+                    polygon,
+                    Asset.location,
+                ),
+            )
+            .all()
+        )
+
+        return assets

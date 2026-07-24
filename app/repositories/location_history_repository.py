@@ -43,6 +43,9 @@ class LocationHistoryRepository:
                 LocationHistory.recorded_at,
             )
             .filter(LocationHistory.asset_id == asset_id)
-            .order_by(LocationHistory.recorded_at.desc())
+            .order_by(
+                LocationHistory.recorded_at.desc(),
+                LocationHistory.id.desc(),
+            )
             .all()
         )

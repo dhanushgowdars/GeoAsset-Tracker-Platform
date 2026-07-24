@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from sqlalchemy import or_
 from sqlalchemy import cast, func
 from sqlalchemy.orm import Session
 
@@ -44,6 +44,7 @@ class AssetRepository:
         owner_id: int,
         asset_type: str | None = None,
         status: str | None = None,
+        search: str | None = None,
     ):
         query = (
             db.query(Asset)
@@ -61,6 +62,15 @@ class AssetRepository:
         if status:
             query = query.filter(
                 Asset.status == status,
+            )
+
+        if search:
+            query = query.filter(
+                or_(
+                    Asset.name.ilike(f"%{search}%"),
+                    Asset.serial_number.ilike(f"%{search}%"),
+                    Asset.description.ilike(f"%{search}%"),
+                )
             )
 
         return query.all()

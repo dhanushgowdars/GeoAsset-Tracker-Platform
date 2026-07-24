@@ -61,6 +61,10 @@ def get_all_assets(
         default=None,
         description="Filter by asset status",
     ),
+    search: str | None = Query(
+        default=None,
+        description="Search by asset name, serial number, or description",
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -69,6 +73,7 @@ def get_all_assets(
         current_user=current_user,
         asset_type=asset_type,
         status=status,
+        search=search,
     )
 
 

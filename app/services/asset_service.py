@@ -33,10 +33,11 @@ class AssetService:
         current_user: User,
         asset_type: str | None = None,
         status: str | None = None,
+        search: str | None = None,
     ):
         """
         Get all assets belonging to the current user,
-        optionally filtered by asset type and status.
+        optionally filtered by asset type, status, and search query.
         """
 
         return AssetRepository.get_all(
@@ -44,6 +45,7 @@ class AssetService:
             owner_id=current_user.id,
             asset_type=asset_type,
             status=status,
+            search=search,
         )
 
     @staticmethod

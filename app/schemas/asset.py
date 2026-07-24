@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
+from app.core.enums.asset_type import AssetType
+from app.core.enums.asset_status import AssetStatus
 
 # ==========================================================
 # CRUD SCHEMAS
@@ -13,7 +14,15 @@ class AssetCreate(BaseModel):
     """
     Schema used when creating a new asset.
     """
+    serial_number: str = Field(
+    ...,
+    min_length=3,
+    max_length=20,
+)
 
+    asset_type: AssetType
+
+    status: AssetStatus = AssetStatus.ONLINE
     name: str = Field(
         ...,
         min_length=3,
@@ -36,7 +45,15 @@ class AssetUpdate(BaseModel):
     """
     Schema used when updating an existing asset.
     """
+    serial_number: Optional[str] = Field(
+    default=None,
+    min_length=3,
+    max_length=20,
+)
 
+    asset_type: Optional[AssetType] = None
+
+    status: Optional[AssetStatus] = None
     name: Optional[str] = Field(
         default=None,
         min_length=3,
@@ -64,6 +81,9 @@ class AssetResponse(BaseModel):
     """
 
     id: int
+    serial_number: str
+    asset_type: AssetType
+    status: AssetStatus
     name: str
     description: Optional[str]
     latitude: float

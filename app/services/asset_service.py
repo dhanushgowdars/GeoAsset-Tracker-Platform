@@ -160,17 +160,20 @@ class AssetService:
 
         for asset, distance in nearby_assets:
             response.append(
-                {
-                    "id": asset.id,
-                    "name": asset.name,
-                    "description": asset.description,
-                    "latitude": asset.latitude,
-                    "longitude": asset.longitude,
-                    "owner_id": asset.owner_id,
-                    "created_at": asset.created_at,
-                    "distance_km": round(distance, 3),
-                }
-            )
+    {
+        "id": asset.id,
+        "serial_number": asset.serial_number,
+        "asset_type": asset.asset_type,
+        "status": asset.status,
+        "name": asset.name,
+        "description": asset.description,
+        "latitude": asset.latitude,
+        "longitude": asset.longitude,
+        "owner_id": asset.owner_id,
+        "created_at": asset.created_at,
+        "distance_km": round(distance, 3),
+    }
+)
 
         return response
 
@@ -201,15 +204,18 @@ class AssetService:
         asset, distance = nearest
 
         return {
-            "id": asset.id,
-            "name": asset.name,
-            "description": asset.description,
-            "latitude": asset.latitude,
-            "longitude": asset.longitude,
-            "owner_id": asset.owner_id,
-            "created_at": asset.created_at,
-            "distance_km": round(distance, 3),
-        }
+    "id": asset.id,
+    "serial_number": asset.serial_number,
+    "asset_type": asset.asset_type,
+    "status": asset.status,
+    "name": asset.name,
+    "description": asset.description,
+    "latitude": asset.latitude,
+    "longitude": asset.longitude,
+    "owner_id": asset.owner_id,
+    "created_at": asset.created_at,
+    "distance_km": round(distance, 3),
+}
 
     @staticmethod
     def calculate_distance(

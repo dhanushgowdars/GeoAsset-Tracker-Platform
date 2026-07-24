@@ -10,7 +10,7 @@ from app.main import app
 
 from app.models.user import User
 from app.models.asset import Asset
-from app.core.roles import UserRole
+from app.core.enums.roles import UserRole
 
 TEST_DATABASE_URL = test_settings.database_url
 

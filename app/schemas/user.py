@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.core.roles import UserRole
+from app.core.enums.roles import UserRole
 
 
 class UserCreate(BaseModel):

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import cast, func
 from sqlalchemy.orm import Session
 
@@ -44,6 +46,7 @@ class AssetRepository:
             db.query(Asset)
             .filter(
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
             )
             .all()
         )
@@ -59,6 +62,7 @@ class AssetRepository:
             .filter(
                 Asset.id == asset_id,
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
             )
             .first()
         )
@@ -97,6 +101,8 @@ class AssetRepository:
                 srid=4326,
             )
 
+            db_asset.last_location_update = datetime.utcnow()
+
         db.commit()
         db.refresh(db_asset)
 
@@ -107,9 +113,12 @@ class AssetRepository:
         db: Session,
         db_asset: Asset,
     ):
-        db.delete(db_asset)
-        db.commit()
+        db_asset.deleted_at = datetime.utcnow()
 
+        db.commit()
+        db.refresh(db_asset)
+
+        return db_asset
     # ==========================================================
     # GEOSPATIAL OPERATIONS
     # ==========================================================
@@ -148,6 +157,7 @@ class AssetRepository:
             )
             .filter(
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
                 func.ST_DWithin(
                     cast(Asset.location, Geography),
                     cast(search_point, Geography),
@@ -193,6 +203,7 @@ class AssetRepository:
             )
             .filter(
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
             )
             .order_by(distance.asc())
             .first()
@@ -234,6 +245,7 @@ class AssetRepository:
             .filter(
                 Asset.id == asset_id,
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
             )
             .first()
         )
@@ -266,6 +278,7 @@ class AssetRepository:
             db.query(Asset)
             .filter(
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
                 func.ST_Within(
                     Asset.location,
                     bounding_box,
@@ -323,6 +336,7 @@ class AssetRepository:
             db.query(Asset)
             .filter(
                 Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
                 func.ST_Contains(
                     polygon,
                     Asset.location,

@@ -7,7 +7,7 @@ from app.services.user_service import UserService
 
 from app.auth.dependencies import get_current_user
 from app.auth.role_dependencies import require_role
-from app.core.roles import UserRole
+from app.core.enums.roles import UserRole
 
 router = APIRouter(
     prefix="/users",

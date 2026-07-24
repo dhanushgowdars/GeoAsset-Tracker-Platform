@@ -120,7 +120,7 @@ def test_login_wrong_email(client):
     assert response.json()["detail"] == "Invalid email or password"
 
 
-from app.core.roles import UserRole
+from app.core.enums.roles import UserRole
 from app.models.user import User
 
 

@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import or_
 from sqlalchemy import cast, func
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
 
 from geoalchemy2 import Geography
 from geoalchemy2.elements import WKTElement
@@ -488,3 +489,80 @@ class AssetRepository:
             "latitude": latitude,
             "longitude": longitude,
         }
+
+# ==========================================================
+# ROUTE ANALYSIS
+# ==========================================================
+
+    @staticmethod
+    def calculate_route_length(
+        db: Session,
+        coordinates: list[list[float]],
+    ):
+        """
+        Calculate the total length of a route (LINESTRING).
+        """
+
+        linestring = ", ".join(
+            f"{lon} {lat}"
+            for lon, lat in coordinates
+        )
+
+        route_wkt = f"LINESTRING({linestring})"
+
+        length = db.execute(
+            text(
+                """
+                SELECT ST_Length(
+                    ST_GeomFromText(:route, 4326)::geography
+                ) AS length_m
+                """
+            ),
+            {"route": route_wkt},
+        ).scalar()
+
+        return length
+
+
+    @staticmethod
+    def check_route_intersection(
+        db: Session,
+        route: list[list[float]],
+        polygon: list[list[float]],
+    ):
+        """
+        Check whether a route intersects a polygon.
+        """
+
+        route_points = ", ".join(
+            f"{lon} {lat}"
+            for lon, lat in route
+        )
+
+        route_wkt = f"LINESTRING({route_points})"
+
+        polygon_points = ", ".join(
+            f"{lon} {lat}"
+            for lon, lat in polygon
+        )
+
+        polygon_points += f", {polygon[0][0]} {polygon[0][1]}"
+
+        polygon_wkt = f"POLYGON(({polygon_points}))"
+
+        intersects = db.execute(
+            text(
+                """
+                SELECT ST_Intersects(
+                    ST_GeomFromText(:route,4326),
+                    ST_GeomFromText(:polygon,4326)
+                )
+                """
+            ),
+            {
+                "route": route_wkt,
+                "polygon": polygon_wkt,
+            },
+        ).scalar()
+
+        return intersects

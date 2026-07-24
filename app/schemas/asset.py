@@ -197,3 +197,47 @@ class CentroidResponse(BaseModel):
 
     latitude: float
     longitude: float
+
+
+# ==========================================================
+# ROUTE ANALYSIS SCHEMAS
+# ==========================================================
+
+class RouteRequest(BaseModel):
+    coordinates: list[list[float]] = Field(
+        ...,
+        example=[
+            [76.6394, 12.2958],
+            [76.6450, 12.3000],
+            [76.6500, 12.3100],
+        ],
+    )
+
+
+class RouteLengthResponse(BaseModel):
+    length_m: float
+
+
+class RouteIntersectionRequest(BaseModel):
+    route: list[list[float]] = Field(
+        ...,
+        example=[
+            [76.6394, 12.2958],
+            [76.6450, 12.3000],
+            [76.6500, 12.3100],
+        ],
+    )
+
+    polygon: list[list[float]] = Field(
+        ...,
+        example=[
+            [76.6400, 12.2940],
+            [76.6550, 12.2940],
+            [76.6550, 12.3150],
+            [76.6400, 12.3150],
+        ],
+    )
+
+
+class RouteIntersectionResponse(BaseModel):
+    intersects: bool

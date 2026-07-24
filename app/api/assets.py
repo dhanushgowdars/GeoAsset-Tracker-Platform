@@ -24,6 +24,10 @@ from app.schemas.asset import (
     PolygonRequest,
     AreaResponse,
     CentroidResponse,
+    RouteRequest,
+    RouteLengthResponse,
+    RouteIntersectionRequest,
+    RouteIntersectionResponse,
 )
 from app.services.asset_service import AssetService
 
@@ -339,6 +343,46 @@ def calculate_polygon_centroid(
         current_user=current_user,
         polygon_points=request.coordinates,
     )
+
+@router.post(
+    "/route/length",
+    response_model=RouteLengthResponse,
+)
+def calculate_route_length(
+    request: RouteRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Calculate the total length of a route.
+    """
+
+    return AssetService.calculate_route_length(
+        db=db,
+        current_user=current_user,
+        coordinates=request.coordinates,
+    )
+
+@router.post(
+    "/route/intersects",
+    response_model=RouteIntersectionResponse,
+)
+def check_route_intersection(
+    request: RouteIntersectionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Check whether a route intersects a polygon.
+    """
+
+    return AssetService.check_route_intersection(
+        db=db,
+        current_user=current_user,
+        route=request.route,
+        polygon=request.polygon,
+    )
+
 
 @router.put(
     "/{asset_id}",

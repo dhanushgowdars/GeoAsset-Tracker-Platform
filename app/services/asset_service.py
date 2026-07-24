@@ -391,3 +391,61 @@ class AssetService:
         )
 
         return centroid
+    @staticmethod
+    def calculate_route_length(
+        db: Session,
+        current_user: User,
+        coordinates: list[list[float]],
+    ):
+        """
+        Calculate the total route length.
+        """
+
+        if len(coordinates) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A route must contain at least two points.",
+            )
+
+        length = AssetRepository.calculate_route_length(
+            db=db,
+            coordinates=coordinates,
+        )
+
+        return {
+            "length_m": round(length, 3),
+        }
+
+
+    @staticmethod
+    def check_route_intersection(
+        db: Session,
+        current_user: User,
+        route: list[list[float]],
+        polygon: list[list[float]],
+    ):
+        """
+        Check whether a route intersects a polygon.
+        """
+
+        if len(route) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Route must contain at least two points.",
+            )
+
+        if len(polygon) < 3:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Polygon must contain at least three points.",
+            )
+
+        intersects = AssetRepository.check_route_intersection(
+            db=db,
+            route=route,
+            polygon=polygon,
+        )
+
+        return {
+            "intersects": intersects,
+        }

@@ -11,7 +11,7 @@ const formatDate = (value) => {
 
 const getOwner = (asset) => asset.owner?.username || asset.owner_name || asset.owner_id || "—";
 
-function AssetTable({ assets, isLoading, error, onRetry, searchTerm, onEdit }) {
+function AssetTable({ assets, isLoading, error, onRetry, searchTerm, onEdit, onDelete }) {
   if (isLoading) {
     return (
       <div className="asset-table-wrap" aria-label="Loading assets" aria-busy="true">
@@ -62,18 +62,34 @@ function AssetTable({ assets, isLoading, error, onRetry, searchTerm, onEdit }) {
               <td data-label="Owner">{getOwner(asset)}</td>
               <td data-label="Created at">{formatDate(asset.created_at)}</td>
               <td data-label="Actions">
-                <button
-                  className="asset-action-btn"
-                  type="button"
-                  onClick={() => onEdit(asset)}
-                  aria-label={`Edit ${asset.name}`}
-                >
-                  <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Edit
-                </button>
+                <div className="asset-actions">
+                  <button
+                    className="asset-action-btn"
+                    type="button"
+                    onClick={() => onEdit(asset)}
+                    aria-label={`Edit ${asset.name}`}
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Edit
+                  </button>
+                  <button
+                    className="asset-action-btn asset-action-btn-delete"
+                    type="button"
+                    onClick={() => onDelete(asset)}
+                    aria-label={`Delete ${asset.name}`}
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 24 24">
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

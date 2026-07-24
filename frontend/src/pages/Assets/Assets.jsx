@@ -4,7 +4,8 @@ import { useOutletContext } from "react-router-dom";
 import AssetTable from "../../components/ui/AssetTable";
 import AssetModal from "../../components/ui/AssetModal";
 import AssetForm from "../../components/ui/AssetForm";
-import { create as createAsset, update as updateAsset } from "../../services/assetService";
+import DeleteConfirmModal from "../../components/ui/DeleteConfirmModal";
+import { create as createAsset, update as updateAsset, deleteAsset } from "../../services/assetService";
 
 function Assets() {
   const { assets, isLoadingAssets, assetsError, reloadAssets } = useOutletContext();
@@ -16,6 +17,9 @@ function Assets() {
   const [successMessage, setSuccessMessage] = useState("");
   const [modalMode, setModalMode] = useState("create");
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [assetToDelete, setAssetToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredAssets = useMemo(() => {
     const normalizedTerm = searchTerm.trim().toLowerCase();
@@ -39,6 +43,63 @@ function Assets() {
     setSelectedAsset(asset);
     setIsModalOpen(true);
     setSubmitError("");
+  };
+
+  const handleDeleteAsset = (asset) => {
+    setAssetToDelete(asset);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCancelDelete = () => {
+    if (!isDeleting) {
+      setIsDeleteModalOpen(false);
+      setAssetToDelete(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!assetToDelete) return;
+
+    setIsDeleting(true);
+
+    try {
+      await deleteAsset(assetToDelete.id);
+      setIsDeleteModalOpen(false);
+      setSuccessMessage("Asset deleted successfully!");
+      setShowSuccess(true);
+
+      // Refresh asset list
+      await reloadAssets();
+
+      // Hide success notification after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+    } catch (err) {
+      // Extract error message from backend response
+      let errorMessage = "Failed to delete asset. Please try again.";
+
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === "string") {
+          errorMessage = err.response.data.detail;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      // Show error in notification
+      setSuccessMessage(errorMessage);
+      setShowSuccess(true);
+      setIsDeleteModalOpen(false);
+
+      // Hide error notification after 5 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
+    } finally {
+      setIsDeleting(false);
+      setAssetToDelete(null);
+    }
   };
 
   const handleCloseModal = () => {
@@ -144,6 +205,7 @@ function Assets() {
           onRetry={reloadAssets}
           searchTerm={searchTerm}
           onEdit={handleEditAsset}
+          onDelete={handleDeleteAsset}
         />
       </section>
 
@@ -158,6 +220,14 @@ function Assets() {
           initialData={selectedAsset}
         />
       </AssetModal>
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        assetName={assetToDelete?.name || "this asset"}
+        isDeleting={isDeleting}
+      />
     </main>
   );
 }

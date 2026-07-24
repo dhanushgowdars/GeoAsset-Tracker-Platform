@@ -34,10 +34,12 @@ class AssetService:
         asset_type: str | None = None,
         status: str | None = None,
         search: str | None = None,
+        limit: int = 10,
+        offset: int = 0,
     ):
         """
         Get all assets belonging to the current user,
-        optionally filtered by asset type, status, and search query.
+        with optional filtering, searching, and pagination.
         """
 
         return AssetRepository.get_all(
@@ -46,6 +48,8 @@ class AssetService:
             asset_type=asset_type,
             status=status,
             search=search,
+            limit=limit,
+            offset=offset,
         )
 
     @staticmethod

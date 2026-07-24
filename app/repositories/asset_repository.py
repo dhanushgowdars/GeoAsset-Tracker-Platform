@@ -45,6 +45,8 @@ class AssetRepository:
         asset_type: str | None = None,
         status: str | None = None,
         search: str | None = None,
+        limit: int = 10,
+        offset: int = 0,
     ):
         query = (
             db.query(Asset)
@@ -73,7 +75,12 @@ class AssetRepository:
                 )
             )
 
-        return query.all()
+        return (
+            query
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
 
     @staticmethod
     def get_by_id(

@@ -65,6 +65,17 @@ def get_all_assets(
         default=None,
         description="Search by asset name, serial number, or description",
     ),
+    limit: int = Query(
+        default=10,
+        ge=1,
+        le=100,
+        description="Maximum number of assets to return",
+    ),
+    offset: int = Query(
+        default=0,
+        ge=0,
+        description="Number of assets to skip",
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -74,6 +85,8 @@ def get_all_assets(
         asset_type=asset_type,
         status=status,
         search=search,
+        limit=limit,
+        offset=offset,
     )
 
 

@@ -7,6 +7,7 @@ from app.models.user import User
 from app.repositories.asset_repository import AssetRepository
 from app.schemas.asset import AssetCreate, AssetUpdate
 from app.services.location_history_service import LocationHistoryService
+from app.services.audit_log_service import AuditLogService
 
 class AssetService:
 # ==========================================================
@@ -49,11 +50,25 @@ class AssetService:
         Create a new asset.
         """
 
-        return AssetRepository.create(
+        created_asset = AssetRepository.create(
             db=db,
             asset=asset,
             owner_id=current_user.id,
         )
+
+        AuditLogService.log_action(
+            db=db,
+            user_id=current_user.id,
+            entity="Asset",
+            entity_id=created_asset.id,
+            action="CREATE",
+            details={
+                "serial_number": created_asset.serial_number,
+                "asset_type": created_asset.asset_type.value,
+            },
+        )
+
+        return created_asset
 
 
     @staticmethod
@@ -139,6 +154,17 @@ class AssetService:
                 longitude=updated_asset.longitude,
             )
 
+
+        AuditLogService.log_action(
+        db=db,
+        user_id=current_user.id,
+        entity="Asset",
+        entity_id=updated_asset.id,
+        action="UPDATE",
+        details={
+            "serial_number": updated_asset.serial_number,
+        },
+    )
         return updated_asset
 
 
@@ -163,6 +189,16 @@ class AssetService:
             db_asset=db_asset,
         )
 
+        AuditLogService.log_action(
+            db=db,
+            user_id=current_user.id,
+            entity="Asset",
+            entity_id=db_asset.id,
+            action="DELETE",
+            details={
+                "serial_number": db_asset.serial_number,
+            },
+        )
         return {
             "message": "Asset deleted successfully."
         }

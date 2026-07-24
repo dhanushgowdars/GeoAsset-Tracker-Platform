@@ -1,12 +1,25 @@
 import { useState } from "react";
 
-function AssetForm({ onSubmit, onCancel, isLoading, error }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    latitude: "",
-    longitude: "",
-  });
+function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "create" }) {
+  // Initialize form data based on mode and initialData
+  const getInitialFormData = () => {
+    if (mode === "edit" && initialData) {
+      return {
+        name: initialData.name || "",
+        description: initialData.description || "",
+        latitude: initialData.latitude !== undefined ? String(initialData.latitude) : "",
+        longitude: initialData.longitude !== undefined ? String(initialData.longitude) : "",
+      };
+    }
+    return {
+      name: "",
+      description: "",
+      latitude: "",
+      longitude: "",
+    };
+  };
+
+  const [formData, setFormData] = useState(getInitialFormData);
 
   const [errors, setErrors] = useState({});
 
@@ -82,10 +95,16 @@ function AssetForm({ onSubmit, onCancel, isLoading, error }) {
     onSubmit(submitData);
   };
 
+  const isEditMode = mode === "edit";
+
   return (
     <form className="asset-form" onSubmit={handleSubmit}>
-      <h2 id="asset-modal-title">Create New Asset</h2>
-      <p className="asset-form-subtitle">Add a new asset to your account with location coordinates.</p>
+      <h2 id="asset-modal-title">{isEditMode ? "Edit Asset" : "Create New Asset"}</h2>
+      <p className="asset-form-subtitle">
+        {isEditMode
+          ? "Update the asset details and location coordinates."
+          : "Add a new asset to your account with location coordinates."}
+      </p>
 
       {error && (
         <p className="form-alert" role="alert">
@@ -194,10 +213,10 @@ function AssetForm({ onSubmit, onCancel, isLoading, error }) {
           {isLoading ? (
             <>
               <span className="button-spinner" aria-hidden="true" />
-              Creating...
+              {isEditMode ? "Updating..." : "Creating..."}
             </>
           ) : (
-            "Create Asset"
+            isEditMode ? "Update Asset" : "Create Asset"
           )}
         </button>
       </div>

@@ -486,6 +486,39 @@
   background: #f8fafc;
 }
 
+.asset-action-btn {
+  align-items: center;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.45rem;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  transition: background 160ms ease, border-color 160ms ease;
+  white-space: nowrap;
+}
+
+.asset-action-btn svg {
+  fill: none;
+  height: 0.95rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 0.95rem;
+}
+
+.asset-action-btn:hover {
+  background: #f8fafc;
+  border-color: #0f766e;
+  color: #0f766e;
+}
+
 .asset-table-skeleton span {
   animation: skeleton-pulse 1.4s ease-in-out infinite;
   background: #e2e8f0;

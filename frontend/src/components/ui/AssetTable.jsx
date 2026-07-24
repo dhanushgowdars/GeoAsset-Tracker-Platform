@@ -11,15 +11,15 @@ const formatDate = (value) => {
 
 const getOwner = (asset) => asset.owner?.username || asset.owner_name || asset.owner_id || "—";
 
-function AssetTable({ assets, isLoading, error, onRetry, searchTerm }) {
+function AssetTable({ assets, isLoading, error, onRetry, searchTerm, onEdit }) {
   if (isLoading) {
     return (
       <div className="asset-table-wrap" aria-label="Loading assets" aria-busy="true">
         <table className="asset-table asset-table-skeleton">
-          <thead><tr><th>Name</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Owner</th><th>Created at</th></tr></thead>
+          <thead><tr><th>Name</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Owner</th><th>Created at</th><th>Actions</th></tr></thead>
           <tbody>
             {[0, 1, 2, 3, 4].map((row) => (
-              <tr key={row}><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td></tr>
+              <tr key={row}><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td></tr>
             ))}
           </tbody>
         </table>
@@ -50,7 +50,7 @@ function AssetTable({ assets, isLoading, error, onRetry, searchTerm }) {
     <div className="asset-table-wrap">
       <table className="asset-table">
         <thead>
-          <tr><th>Name</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Owner</th><th>Created at</th></tr>
+          <tr><th>Name</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Owner</th><th>Created at</th><th>Actions</th></tr>
         </thead>
         <tbody>
           {assets.map((asset) => (
@@ -61,6 +61,20 @@ function AssetTable({ assets, isLoading, error, onRetry, searchTerm }) {
               <td data-label="Longitude">{formatCoordinates(asset.longitude)}</td>
               <td data-label="Owner">{getOwner(asset)}</td>
               <td data-label="Created at">{formatDate(asset.created_at)}</td>
+              <td data-label="Actions">
+                <button
+                  className="asset-action-btn"
+                  type="button"
+                  onClick={() => onEdit(asset)}
+                  aria-label={`Edit ${asset.name}`}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Edit
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

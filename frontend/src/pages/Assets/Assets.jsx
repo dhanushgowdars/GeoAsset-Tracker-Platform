@@ -4,7 +4,7 @@ import { useOutletContext } from "react-router-dom";
 import AssetTable from "../../components/ui/AssetTable";
 import AssetModal from "../../components/ui/AssetModal";
 import AssetForm from "../../components/ui/AssetForm";
-import { create as createAsset } from "../../services/assetService";
+import { create as createAsset, update as updateAsset } from "../../services/assetService";
 
 function Assets() {
   const { assets, isLoadingAssets, assetsError, reloadAssets } = useOutletContext();
@@ -13,6 +13,9 @@ function Assets() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedAsset, setSelectedAsset] = useState(null);
 
   const filteredAssets = useMemo(() => {
     const normalizedTerm = searchTerm.trim().toLowerCase();
@@ -25,6 +28,15 @@ function Assets() {
   }, [assets, searchTerm]);
 
   const handleOpenModal = () => {
+    setModalMode("create");
+    setSelectedAsset(null);
+    setIsModalOpen(true);
+    setSubmitError("");
+  };
+
+  const handleEditAsset = (asset) => {
+    setModalMode("edit");
+    setSelectedAsset(asset);
     setIsModalOpen(true);
     setSubmitError("");
   };
@@ -33,6 +45,8 @@ function Assets() {
     if (!isSubmitting) {
       setIsModalOpen(false);
       setSubmitError("");
+      setSelectedAsset(null);
+      setModalMode("create");
     }
   };
 
@@ -41,9 +55,19 @@ function Assets() {
     setSubmitError("");
 
     try {
-      await createAsset(data);
-      setShowSuccess(true);
-      setIsModalOpen(false);
+      if (modalMode === "edit" && selectedAsset) {
+        // Update existing asset
+        await updateAsset(selectedAsset.id, data);
+        setIsModalOpen(false);
+        setSuccessMessage("Asset updated successfully!");
+        setShowSuccess(true);
+      } else {
+        // Create new asset
+        await createAsset(data);
+        setIsModalOpen(false);
+        setSuccessMessage("Asset created successfully!");
+        setShowSuccess(true);
+      }
       
       // Refresh asset list
       await reloadAssets();
@@ -54,7 +78,8 @@ function Assets() {
       }, 3000);
     } catch (err) {
       // Extract error message from backend response
-      let errorMessage = "Failed to create asset. Please try again.";
+      const action = modalMode === "edit" ? "update" : "create";
+      let errorMessage = `Failed to ${action} asset. Please try again.`;
       
       if (err.response?.data?.detail) {
         if (Array.isArray(err.response.data.detail)) {
@@ -82,7 +107,7 @@ function Assets() {
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Asset created successfully!
+          {successMessage}
         </div>
       )}
 
@@ -118,15 +143,19 @@ function Assets() {
           error={assetsError}
           onRetry={reloadAssets}
           searchTerm={searchTerm}
+          onEdit={handleEditAsset}
         />
       </section>
 
       <AssetModal isOpen={isModalOpen} onClose={handleCloseModal}>
         <AssetForm
+          key={modalMode === "edit" ? selectedAsset?.id : "create"}
           onSubmit={handleSubmit}
           onCancel={handleCloseModal}
           isLoading={isSubmitting}
           error={submitError}
+          mode={modalMode}
+          initialData={selectedAsset}
         />
       </AssetModal>
     </main>

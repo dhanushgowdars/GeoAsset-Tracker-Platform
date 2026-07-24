@@ -3,6 +3,9 @@ from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.enums.asset_type import AssetType
+from app.core.enums.asset_status import AssetStatus
+
 from app.database.session import get_db
 from app.auth.dependencies import get_current_user
 from app.models.user import User
@@ -50,12 +53,22 @@ def create_asset(
     response_model=List[AssetResponse],
 )
 def get_all_assets(
+    asset_type: AssetType | None = Query(
+        default=None,
+        description="Filter by asset type",
+    ),
+    status: AssetStatus | None = Query(
+        default=None,
+        description="Filter by asset status",
+    ),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     return AssetService.get_all_assets(
         db=db,
         current_user=current_user,
+        asset_type=asset_type,
+        status=status,
     )
 
 

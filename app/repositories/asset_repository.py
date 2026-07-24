@@ -37,19 +37,33 @@ class AssetRepository:
 
         return db_asset
 
+    
     @staticmethod
     def get_all(
         db: Session,
         owner_id: int,
+        asset_type: str | None = None,
+        status: str | None = None,
     ):
-        return (
+        query = (
             db.query(Asset)
             .filter(
                 Asset.owner_id == owner_id,
                 Asset.deleted_at.is_(None),
             )
-            .all()
         )
+
+        if asset_type:
+            query = query.filter(
+                Asset.asset_type == asset_type,
+            )
+
+        if status:
+            query = query.filter(
+                Asset.status == status,
+            )
+
+        return query.all()
 
     @staticmethod
     def get_by_id(

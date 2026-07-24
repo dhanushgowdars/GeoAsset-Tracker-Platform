@@ -31,14 +31,19 @@ class AssetService:
     def get_all_assets(
         db: Session,
         current_user: User,
+        asset_type: str | None = None,
+        status: str | None = None,
     ):
         """
-        Get all assets belonging to the current user.
+        Get all assets belonging to the current user,
+        optionally filtered by asset type and status.
         """
 
         return AssetRepository.get_all(
             db=db,
             owner_id=current_user.id,
+            asset_type=asset_type,
+            status=status,
         )
 
     @staticmethod

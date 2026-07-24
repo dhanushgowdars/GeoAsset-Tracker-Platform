@@ -7,6 +7,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.assets import router as asset_router
 from app.api.audit_log import router as audit_log_router
 from app.api.users import router as user_router
+from app.api.analytics import router as analytics_router
 
 from app.database.session import test_connection
 
@@ -30,6 +31,7 @@ app.include_router(user_router)
 app.include_router(dashboard_router)
 app.include_router(location_history_router)
 app.include_router(audit_log_router)
+app.include_router(analytics_router)
 
 @app.get("/")
 def root():

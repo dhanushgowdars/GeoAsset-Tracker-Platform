@@ -3,11 +3,14 @@ def create_test_asset(client, auth_headers, name, latitude, longitude):
         "/assets/",
         headers=auth_headers,
         json={
+            "serial_number": "DRN001",
+            "asset_type": "DRONE",
+            "status": "ONLINE",
             "name": name,
             "description": f"{name} Description",
             "latitude": latitude,
             "longitude": longitude,
-        },
+         }
     )
 
     assert response.status_code == 201

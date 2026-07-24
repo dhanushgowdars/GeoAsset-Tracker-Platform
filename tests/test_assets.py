@@ -3,6 +3,9 @@ def test_create_asset(client, auth_headers):
         "/assets/",
         headers=auth_headers,
         json={
+            "serial_number": "DRN001",
+            "asset_type": "DRONE",
+            "status": "ONLINE",
             "name": "Drone A",
             "description": "Survey Drone",
             "latitude": 12.2958,
@@ -14,6 +17,9 @@ def test_create_asset(client, auth_headers):
 
     data = response.json()
 
+    assert data["serial_number"] == "DRN001"
+    assert data["asset_type"] == "DRONE"
+    assert data["status"] == "ONLINE"
     assert data["name"] == "Drone A"
     assert data["description"] == "Survey Drone"
     assert data["latitude"] == 12.2958
@@ -26,6 +32,9 @@ def test_get_all_assets(client, auth_headers):
         "/assets/",
         headers=auth_headers,
         json={
+            "serial_number": "DRN001",
+            "asset_type": "DRONE",
+            "status": "ONLINE",
             "name": "Drone A",
             "description": "Survey Drone",
             "latitude": 12.2958,
@@ -42,8 +51,15 @@ def test_get_all_assets(client, auth_headers):
 
     data = response.json()
 
-    assert len(data) == 1
-    assert data[0]["name"] == "Drone A"
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+
+    asset = data["items"][0]
+
+    assert asset["serial_number"] == "DRN001"
+    assert asset["asset_type"] == "DRONE"
+    assert asset["status"] == "ONLINE"
+    assert asset["name"] == "Drone A"
 
 
 def test_get_asset_by_id(client, auth_headers):
@@ -51,12 +67,17 @@ def test_get_asset_by_id(client, auth_headers):
         "/assets/",
         headers=auth_headers,
         json={
+            "serial_number": "DRN001",
+            "asset_type": "DRONE",
+            "status": "ONLINE",
             "name": "Drone A",
             "description": "Survey Drone",
             "latitude": 12.2958,
             "longitude": 76.6394,
         },
     )
+
+    assert create.status_code == 201
 
     asset_id = create.json()["id"]
 
@@ -70,6 +91,9 @@ def test_get_asset_by_id(client, auth_headers):
     data = response.json()
 
     assert data["id"] == asset_id
+    assert data["serial_number"] == "DRN001"
+    assert data["asset_type"] == "DRONE"
+    assert data["status"] == "ONLINE"
     assert data["name"] == "Drone A"
 
 
@@ -88,6 +112,9 @@ def test_update_asset(client, auth_headers):
         "/assets/",
         headers=auth_headers,
         json={
+            "serial_number": "DRN001",
+            "asset_type": "DRONE",
+            "status": "ONLINE",
             "name": "Drone A",
             "description": "Survey Drone",
             "latitude": 12.2958,
@@ -95,12 +122,17 @@ def test_update_asset(client, auth_headers):
         },
     )
 
+    assert create.status_code == 201
+
     asset_id = create.json()["id"]
 
     response = client.put(
         f"/assets/{asset_id}",
         headers=auth_headers,
         json={
+            "serial_number": "DRN002",
+            "asset_type": "DRONE",
+            "status": "OFFLINE",
             "name": "Updated Drone",
             "description": "Updated Description",
         },
@@ -110,6 +142,9 @@ def test_update_asset(client, auth_headers):
 
     data = response.json()
 
+    assert data["serial_number"] == "DRN002"
+    assert data["asset_type"] == "DRONE"
+    assert data["status"] == "OFFLINE"
     assert data["name"] == "Updated Drone"
     assert data["description"] == "Updated Description"
     assert data["latitude"] == 12.2958
@@ -121,12 +156,17 @@ def test_delete_asset(client, auth_headers):
         "/assets/",
         headers=auth_headers,
         json={
+            "serial_number": "DRN001",
+            "asset_type": "DRONE",
+            "status": "ONLINE",
             "name": "Drone A",
             "description": "Survey Drone",
             "latitude": 12.2958,
             "longitude": 76.6394,
         },
     )
+
+    assert create.status_code == 201
 
     asset_id = create.json()["id"]
 

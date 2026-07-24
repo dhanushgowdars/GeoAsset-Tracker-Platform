@@ -38,8 +38,8 @@ class AssetService:
         offset: int = 0,
     ):
         """
-        Get all assets belonging to the current user,
-        with optional filtering, searching, and pagination.
+        Get paginated assets belonging to the current user,
+        with optional filtering and searching.
         """
 
         return AssetRepository.get_all(

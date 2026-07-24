@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-
+from app.schemas.pagination import PaginatedResponse
 from app.core.enums.asset_type import AssetType
 from app.core.enums.asset_status import AssetStatus
 
@@ -50,7 +50,7 @@ def create_asset(
 
 @router.get(
     "/",
-    response_model=List[AssetResponse],
+    response_model=PaginatedResponse[AssetResponse],
 )
 def get_all_assets(
     asset_type: AssetType | None = Query(

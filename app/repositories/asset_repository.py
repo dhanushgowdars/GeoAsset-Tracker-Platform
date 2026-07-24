@@ -75,12 +75,21 @@ class AssetRepository:
                 )
             )
 
-        return (
+        total = query.count()
+
+        items = (
             query
             .offset(offset)
             .limit(limit)
             .all()
         )
+
+        return {
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "items": items,
+        }
 
     @staticmethod
     def get_by_id(

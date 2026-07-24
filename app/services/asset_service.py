@@ -6,7 +6,7 @@ from app.core.enums.sort_order import SortOrder
 from app.models.user import User
 from app.repositories.asset_repository import AssetRepository
 from app.schemas.asset import AssetCreate, AssetUpdate
-
+from app.services.location_history_service import LocationHistoryService
 
 class AssetService:
 # ==========================================================
@@ -120,11 +120,26 @@ class AssetService:
             current_user=current_user,
         )
 
-        return AssetRepository.update(
+        location_changed = (
+            asset_update.latitude is not None
+            or asset_update.longitude is not None
+        )
+
+        updated_asset = AssetRepository.update(
             db=db,
             db_asset=db_asset,
             asset=asset_update,
         )
+
+        if location_changed:
+            LocationHistoryService.create_location_history(
+                db=db,
+                asset_id=updated_asset.id,
+                latitude=updated_asset.latitude,
+                longitude=updated_asset.longitude,
+            )
+
+        return updated_asset
 
 
     @staticmethod

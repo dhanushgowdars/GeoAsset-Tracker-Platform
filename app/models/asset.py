@@ -90,3 +90,9 @@ class Asset(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    location_history = relationship(
+    "LocationHistory",
+    back_populates="asset",
+    cascade="all, delete-orphan",
+)

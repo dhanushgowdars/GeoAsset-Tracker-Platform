@@ -10,6 +10,7 @@ from app.config.test_settings import test_settings
 from app.database.base import Base
 import app.models.asset
 import app.models.user
+import app.models.location_history
 
 # Alembic Config object
 config = context.config

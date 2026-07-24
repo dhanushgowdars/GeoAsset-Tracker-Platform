@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.location_history import router as location_history_router
 from app.api.dashboard import router as dashboard_router
 from app.api.assets import router as asset_router
 from app.database.session import test_connection
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(asset_router)
 app.include_router(user_router)
 app.include_router(dashboard_router)
+app.include_router(location_history_router)
 
 @app.get("/")
 def root():

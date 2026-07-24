@@ -1,6 +1,8 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.enums.sort_field import SortField
+from app.core.enums.sort_order import SortOrder
 from app.models.user import User
 from app.repositories.asset_repository import AssetRepository
 from app.schemas.asset import AssetCreate, AssetUpdate
@@ -34,12 +36,14 @@ class AssetService:
         asset_type: str | None = None,
         status: str | None = None,
         search: str | None = None,
+        sort_by: SortField = SortField.CREATED_AT,
+        order: SortOrder = SortOrder.DESC,
         limit: int = 10,
         offset: int = 0,
     ):
         """
-        Get paginated assets belonging to the current user,
-        with optional filtering and searching.
+        Get paginated assets belonging to the current user
+        with filtering, searching, sorting, and pagination.
         """
 
         return AssetRepository.get_all(
@@ -48,6 +52,8 @@ class AssetService:
             asset_type=asset_type,
             status=status,
             search=search,
+            sort_by=sort_by,
+            order=order,
             limit=limit,
             offset=offset,
         )

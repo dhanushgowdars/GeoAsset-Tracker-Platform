@@ -2,6 +2,9 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+
+from app.core.enums.sort_field import SortField
+from app.core.enums.sort_order import SortOrder
 from app.schemas.pagination import PaginatedResponse
 from app.core.enums.asset_type import AssetType
 from app.core.enums.asset_status import AssetStatus
@@ -65,6 +68,14 @@ def get_all_assets(
         default=None,
         description="Search by asset name, serial number, or description",
     ),
+    sort_by: SortField = Query(
+        default=SortField.CREATED_AT,
+        description="Field to sort by",
+    ),
+    order: SortOrder = Query(
+        default=SortOrder.DESC,
+        description="Sort order",
+    ),
     limit: int = Query(
         default=10,
         ge=1,
@@ -85,6 +96,8 @@ def get_all_assets(
         asset_type=asset_type,
         status=status,
         search=search,
+        sort_by=sort_by,
+        order=order,
         limit=limit,
         offset=offset,
     )

@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from geoalchemy2 import Geography
 from geoalchemy2.elements import WKTElement
 
+from app.core.enums.sort_field import SortField
+from app.core.enums.sort_order import SortOrder
 from app.models.asset import Asset
 from app.schemas.asset import AssetCreate, AssetUpdate
 
@@ -45,6 +47,8 @@ class AssetRepository:
         asset_type: str | None = None,
         status: str | None = None,
         search: str | None = None,
+        sort_by: SortField = SortField.CREATED_AT,
+        order: SortOrder = SortOrder.DESC,
         limit: int = 10,
         offset: int = 0,
     ):
@@ -76,6 +80,21 @@ class AssetRepository:
             )
 
         total = query.count()
+
+        sortable_fields = {
+            SortField.NAME: Asset.name,
+            SortField.CREATED_AT: Asset.created_at,
+            SortField.UPDATED_AT: Asset.updated_at,
+            SortField.STATUS: Asset.status,
+            SortField.ASSET_TYPE: Asset.asset_type,
+        }
+
+        sort_column = sortable_fields[sort_by]
+
+        if order == SortOrder.ASC:
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
 
         items = (
             query

@@ -20,6 +20,10 @@ from app.schemas.asset import (
     DistanceResponse,
     BoundingBoxResponse,
     GeofenceRequest,
+    BufferResponse,
+    PolygonRequest,
+    AreaResponse,
+    CentroidResponse,
 )
 from app.services.asset_service import AssetService
 
@@ -271,6 +275,70 @@ def get_asset(
         current_user=current_user,
     )
 
+@router.get(
+    "/{asset_id}/buffer",
+    response_model=BufferResponse,
+)
+def generate_buffer(
+    asset_id: int,
+    radius_m: float = Query(
+        ...,
+        gt=0,
+        description="Buffer radius in meters",
+    ),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate a buffer around an asset.
+    """
+
+    return AssetService.generate_buffer(
+        db=db,
+        current_user=current_user,
+        asset_id=asset_id,
+        radius_m=radius_m,
+    )
+
+
+@router.post(
+    "/polygon/area",
+    response_model=AreaResponse,
+)
+def calculate_polygon_area(
+    request: PolygonRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Calculate polygon area.
+    """
+
+    return AssetService.calculate_polygon_area(
+        db=db,
+        current_user=current_user,
+        polygon_points=request.coordinates,
+    )
+
+
+@router.post(
+    "/polygon/centroid",
+    response_model=CentroidResponse,
+)
+def calculate_polygon_centroid(
+    request: PolygonRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Calculate polygon centroid.
+    """
+
+    return AssetService.calculate_polygon_centroid(
+        db=db,
+        current_user=current_user,
+        polygon_points=request.coordinates,
+    )
 
 @router.put(
     "/{asset_id}",

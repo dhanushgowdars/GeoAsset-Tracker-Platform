@@ -9,9 +9,35 @@ from app.schemas.asset import AssetCreate, AssetUpdate
 
 
 class AssetService:
-    # ==========================================================
-    # CRUD OPERATIONS
-    # ==========================================================
+# ==========================================================
+# CRUD OPERATIONS
+# ==========================================================
+
+    @staticmethod
+    def _get_existing_asset(
+        db: Session,
+        asset_id: int,
+        current_user: User,
+    ):
+        """
+        Returns an existing asset owned by the current user.
+        Raises 404 if the asset does not exist.
+        """
+
+        asset = AssetRepository.get_by_id(
+            db=db,
+            asset_id=asset_id,
+            owner_id=current_user.id,
+        )
+
+        if asset is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Asset not found.",
+            )
+
+        return asset
+
 
     @staticmethod
     def create_asset(
@@ -28,6 +54,7 @@ class AssetService:
             asset=asset,
             owner_id=current_user.id,
         )
+
 
     @staticmethod
     def get_all_assets(
@@ -58,6 +85,7 @@ class AssetService:
             offset=offset,
         )
 
+
     @staticmethod
     def get_asset(
         db: Session,
@@ -68,19 +96,12 @@ class AssetService:
         Get a single asset.
         """
 
-        asset = AssetRepository.get_by_id(
+        return AssetService._get_existing_asset(
             db=db,
             asset_id=asset_id,
-            owner_id=current_user.id,
+            current_user=current_user,
         )
 
-        if asset is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Asset not found.",
-            )
-
-        return asset
 
     @staticmethod
     def update_asset(
@@ -93,23 +114,18 @@ class AssetService:
         Update an asset.
         """
 
-        db_asset = AssetRepository.get_by_id(
+        db_asset = AssetService._get_existing_asset(
             db=db,
             asset_id=asset_id,
-            owner_id=current_user.id,
+            current_user=current_user,
         )
-
-        if db_asset is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Asset not found.",
-            )
 
         return AssetRepository.update(
             db=db,
             db_asset=db_asset,
             asset=asset_update,
         )
+
 
     @staticmethod
     def delete_asset(
@@ -121,24 +137,20 @@ class AssetService:
         Delete an asset.
         """
 
-        db_asset = AssetRepository.get_by_id(
+        db_asset = AssetService._get_existing_asset(
             db=db,
             asset_id=asset_id,
-            owner_id=current_user.id,
+            current_user=current_user,
         )
-
-        if db_asset is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Asset not found.",
-            )
 
         AssetRepository.delete(
             db=db,
             db_asset=db_asset,
         )
 
-        return {"message": "Asset deleted successfully."}
+        return {
+            "message": "Asset deleted successfully."
+        }
 
     # ==========================================================
     # GEOSPATIAL OPERATIONS
@@ -313,3 +325,69 @@ class AssetService:
         )
 
         return assets
+
+    @staticmethod
+    def generate_buffer(
+        db: Session,
+        current_user: User,
+        asset_id: int,
+        radius_m: float,
+    ):
+        """
+        Generate a buffer around an asset.
+        """
+
+        AssetService._get_existing_asset(
+            db=db,
+            asset_id=asset_id,
+            current_user=current_user,
+        )
+
+        result = AssetRepository.generate_buffer(
+            db=db,
+            asset_id=asset_id,
+            owner_id=current_user.id,
+            radius_m=radius_m,
+        )
+
+        return {
+            "asset_id": result.asset_id,
+            "radius_m": radius_m,
+            "buffer_wkt": result.buffer_wkt,
+        }
+
+    @staticmethod
+    def calculate_polygon_area(
+        db: Session,
+        current_user: User,
+        polygon_points: list[list[float]],
+    ):
+        """
+        Calculate the area of a polygon.
+        """
+
+        area = AssetRepository.calculate_polygon_area(
+            db=db,
+            polygon_points=polygon_points,
+        )
+
+        return {
+            "area_sq_m": round(area, 3),
+        }
+
+    @staticmethod
+    def calculate_polygon_centroid(
+        db: Session,
+        current_user: User,
+        polygon_points: list[list[float]],
+    ):
+        """
+        Calculate the centroid of a polygon.
+        """
+
+        centroid = AssetRepository.calculate_polygon_centroid(
+            db=db,
+            polygon_points=polygon_points,
+        )
+
+        return centroid

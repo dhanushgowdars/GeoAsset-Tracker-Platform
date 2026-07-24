@@ -149,3 +149,51 @@ class GeofenceRequest(BaseModel):
     """
 
     coordinates: list[list[float]]
+
+# ==========================================================
+# SPATIAL ANALYSIS
+# ==========================================================
+
+
+class BufferResponse(BaseModel):
+    """
+    Buffer generated around an asset.
+    """
+
+    asset_id: int
+    radius_m: float
+    buffer_wkt: str
+
+
+class PolygonRequest(BaseModel):
+    """
+    Polygon coordinates used for spatial analysis.
+
+    Example:
+
+    [
+        [76.63, 12.29],
+        [76.65, 12.30],
+        [76.64, 12.32],
+        [76.63, 12.29]
+    ]
+    """
+
+    coordinates: list[list[float]]
+
+
+class AreaResponse(BaseModel):
+    """
+    Area of a polygon.
+    """
+
+    area_sq_m: float
+
+
+class CentroidResponse(BaseModel):
+    """
+    Centroid of a polygon.
+    """
+
+    latitude: float
+    longitude: float

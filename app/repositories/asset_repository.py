@@ -178,6 +178,34 @@ class AssetRepository:
         db.refresh(db_asset)
 
         return db_asset
+    
+    @staticmethod
+    def _build_polygon(polygon_points: list[list[float]]):
+        """
+        Builds a PostGIS polygon from a list of coordinates.
+        Automatically closes the polygon if needed.
+        """
+
+        if len(polygon_points) < 3:
+            raise ValueError(
+                "A polygon must contain at least three points."
+            )
+
+        if polygon_points[0] != polygon_points[-1]:
+            polygon_points = polygon_points + [polygon_points[0]]
+
+        polygon_coordinates = ", ".join(
+            f"{longitude} {latitude}"
+            for longitude, latitude in polygon_points
+        )
+
+        polygon_wkt = f"POLYGON(({polygon_coordinates}))"
+
+        return func.ST_GeomFromText(
+            polygon_wkt,
+            4326,
+        )
+
     # ==========================================================
     # GEOSPATIAL OPERATIONS
     # ==========================================================
@@ -356,39 +384,10 @@ class AssetRepository:
     ):
         """
         Returns all assets inside a custom geofence polygon.
-
-        polygon_points format:
-        [
-            [longitude, latitude],
-            [longitude, latitude],
-            ...
-        ]
-
-        Note:
-        The first and last point must be the same to
-        close the polygon. If they are not, this
-        method will automatically close it without
-        modifying the original input list.
         """
 
-        if len(polygon_points) < 3:
-            raise ValueError("A polygon must contain at least three points.")
-
-        # Create a closed polygon without mutating the original input
-        if polygon_points[0] == polygon_points[-1]:
-            closed_polygon = polygon_points
-        else:
-            closed_polygon = polygon_points + [polygon_points[0]]
-
-        polygon_coordinates = ", ".join(
-            f"{longitude} {latitude}" for longitude, latitude in closed_polygon
-        )
-
-        polygon_wkt = f"POLYGON(({polygon_coordinates}))"
-
-        polygon = func.ST_GeomFromText(
-            polygon_wkt,
-            4326,
+        polygon = AssetRepository._build_polygon(
+            polygon_points,
         )
 
         assets = (
@@ -405,3 +404,87 @@ class AssetRepository:
         )
 
         return assets
+
+    @staticmethod
+    def generate_buffer(
+        db: Session,
+        asset_id: int,
+        owner_id: int,
+        radius_m: float,
+    ):
+        """
+        Generates a buffer around an asset.
+        """
+
+        return (
+            db.query(
+                Asset.id.label("asset_id"),
+                func.ST_AsText(
+                    func.ST_Buffer(
+                        cast(Asset.location, Geography),
+                        radius_m,
+                    )
+                ).label("buffer_wkt"),
+            )
+            .filter(
+                Asset.id == asset_id,
+                Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
+            )
+            .first()
+        )
+    @staticmethod
+    def calculate_polygon_area(
+        db: Session,
+        polygon_points: list[list[float]],
+    ):
+        """
+        Calculates polygon area in square meters.
+        """
+
+        polygon = AssetRepository._build_polygon(
+            polygon_points,
+        )
+
+        return db.scalar(
+            func.ST_Area(
+                cast(
+                    polygon,
+                    Geography,
+                )
+            )
+        )
+
+    @staticmethod
+    def calculate_polygon_centroid(
+        db: Session,
+        polygon_points: list[list[float]],
+    ):
+        """
+        Returns polygon centroid.
+        """
+
+        polygon = AssetRepository._build_polygon(
+            polygon_points,
+        )
+
+        latitude, longitude = (
+            db.query(
+                func.ST_Y(
+                    func.ST_Centroid(
+                        polygon,
+                    )
+                ),
+                func.ST_X(
+                    func.ST_Centroid(
+                        polygon,
+                    )
+                ),
+            )
+            .first()
+        )
+
+        return {
+            "latitude": latitude,
+            "longitude": longitude,
+        }

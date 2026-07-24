@@ -384,6 +384,12 @@
   padding: 1.35rem 1.35rem 1.15rem;
 }
 
+.assets-panel-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
 .assets-panel h2 {
   font-size: 1.2rem;
 }
@@ -694,7 +700,8 @@
 }
 
 .button-secondary,
-.button-danger {
+.button-danger,
+.button-primary {
   border-radius: 0.5rem;
   cursor: pointer;
   font: inherit;
@@ -715,8 +722,51 @@
   color: #ffffff;
 }
 
+.button-primary {
+  align-items: center;
+  background: #0f766e;
+  border: 1px solid #0f766e;
+  color: #ffffff;
+  display: flex;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
+.button-create {
+  align-items: center;
+  background: #0f766e;
+  border: 1px solid #0f766e;
+  border-radius: 0.5rem;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+}
+
+.button-create svg {
+  fill: none;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 1rem;
+}
+
 .button-secondary:hover { background: #f8fafc; }
 .button-danger:hover { background: #9f1239; }
+.button-primary:hover:not(:disabled) { background: #115e59; }
+.button-create:hover { background: #115e59; }
+
+.button-primary:disabled,
+.button-create:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
 
 @keyframes skeleton-pulse {
   50% { opacity: 0.45; }
@@ -752,8 +802,146 @@
   .stats-grid { gap: 0.75rem; }
   .stat-card { min-height: 8.5rem; padding: 1rem; }
   .assets-panel-header { align-items: stretch; flex-direction: column; padding: 1.1rem; }
+  .assets-panel-actions { flex-direction: column-reverse; }
   .asset-search { width: 100%; }
+  .button-create { justify-content: center; width: 100%; }
   .profile-label { display: none; }
   .profile-chevron { display: none; }
   .profile-details > div { align-items: start; grid-template-columns: 1fr; gap: 0.25rem; }
+}
+
+.asset-modal {
+  background: #ffffff;
+  border-radius: 0.9rem;
+  box-shadow: 0 1.5rem 4rem rgba(15, 23, 42, 0.24);
+  max-width: 36rem;
+  padding: 1.75rem;
+  width: 100%;
+}
+
+.asset-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.asset-form h2 {
+  color: #0f172a;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.asset-form-subtitle {
+  color: #64748b;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  margin: -0.5rem 0 0;
+}
+
+.asset-form-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.asset-form-field label {
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.field-required {
+  color: #dc2626;
+}
+
+.asset-form-field input,
+.asset-form-field textarea {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.625rem;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.88rem;
+  outline: none;
+  padding: 0.75rem 0.85rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  width: 100%;
+}
+
+.asset-form-field textarea {
+  resize: vertical;
+}
+
+.asset-form-field input:focus,
+.asset-form-field textarea:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.14);
+}
+
+.asset-form-field input[aria-invalid="true"],
+.asset-form-field textarea[aria-invalid="true"] {
+  border-color: #dc2626;
+}
+
+.asset-form-field input:disabled,
+.asset-form-field textarea:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.asset-form-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.asset-form-actions {
+  display: flex;
+  gap: 0.65rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.success-notification {
+  align-items: center;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.75rem;
+  color: #166534;
+  display: flex;
+  font-size: 0.88rem;
+  font-weight: 650;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.success-notification svg {
+  fill: none;
+  flex-shrink: 0;
+  height: 1.25rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  width: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .asset-modal {
+    max-width: calc(100vw - 2rem);
+    padding: 1.4rem;
+  }
+
+  .asset-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .asset-form-actions button {
+    width: 100%;
+  }
 }

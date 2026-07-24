@@ -2,10 +2,17 @@ import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
 import AssetTable from "../../components/ui/AssetTable";
+import AssetModal from "../../components/ui/AssetModal";
+import AssetForm from "../../components/ui/AssetForm";
+import { create as createAsset } from "../../services/assetService";
 
 function Assets() {
   const { assets, isLoadingAssets, assetsError, reloadAssets } = useOutletContext();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const filteredAssets = useMemo(() => {
     const normalizedTerm = searchTerm.trim().toLowerCase();
@@ -17,8 +24,68 @@ function Assets() {
     ));
   }, [assets, searchTerm]);
 
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+    setSubmitError("");
+  };
+
+  const handleCloseModal = () => {
+    if (!isSubmitting) {
+      setIsModalOpen(false);
+      setSubmitError("");
+    }
+  };
+
+  const handleSubmit = async (data) => {
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      await createAsset(data);
+      setShowSuccess(true);
+      setIsModalOpen(false);
+      
+      // Refresh asset list
+      await reloadAssets();
+
+      // Hide success notification after 3 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 3000);
+    } catch (err) {
+      // Extract error message from backend response
+      let errorMessage = "Failed to create asset. Please try again.";
+      
+      if (err.response?.data?.detail) {
+        if (Array.isArray(err.response.data.detail)) {
+          // Validation errors from FastAPI
+          errorMessage = err.response.data.detail
+            .map((error) => error.msg || error.message)
+            .join(". ");
+        } else if (typeof err.response.data.detail === "string") {
+          errorMessage = err.response.data.detail;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setSubmitError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="dashboard-content">
+      {showSuccess && (
+        <div className="success-notification" role="alert">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Asset created successfully!
+        </div>
+      )}
+
       <section className="assets-panel" aria-labelledby="assets-title">
         <div className="assets-panel-header">
           <div>
@@ -26,16 +93,24 @@ function Assets() {
             <h2 id="assets-title">Your assets</h2>
             <p className="assets-panel-copy">Search and review the assets associated with your account.</p>
           </div>
-          <label className="asset-search">
-            <span className="sr-only">Search assets</span>
-            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="m16 16 4 4" /></svg>
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search name or description"
-            />
-          </label>
+          <div className="assets-panel-actions">
+            <button className="button-create" type="button" onClick={handleOpenModal}>
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M12 5v14m-7-7h14" />
+              </svg>
+              Create Asset
+            </button>
+            <label className="asset-search">
+              <span className="sr-only">Search assets</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="m16 16 4 4" /></svg>
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search name or description"
+              />
+            </label>
+          </div>
         </div>
         <AssetTable
           assets={filteredAssets}
@@ -45,6 +120,15 @@ function Assets() {
           searchTerm={searchTerm}
         />
       </section>
+
+      <AssetModal isOpen={isModalOpen} onClose={handleCloseModal}>
+        <AssetForm
+          onSubmit={handleSubmit}
+          onCancel={handleCloseModal}
+          isLoading={isSubmitting}
+          error={submitError}
+        />
+      </AssetModal>
     </main>
   );
 }

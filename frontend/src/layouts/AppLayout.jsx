@@ -25,7 +25,8 @@ const getErrorMessage = (error) => {
 
 const fetchAssetList = async () => {
   const response = await getAssets();
-  return Array.isArray(response) ? response : [];
+  // Handle PaginatedResponse format { total, limit, offset, items }
+  return Array.isArray(response.items) ? response.items : (Array.isArray(response) ? response : []);
 };
 
 function AppLayout() {

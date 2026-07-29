@@ -11,15 +11,25 @@ const formatDate = (value) => {
 
 const getOwner = (asset) => asset.owner?.username || asset.owner_name || asset.owner_id || "—";
 
+const getStatusBadge = (status) => {
+  const statusColors = {
+    ONLINE: "badge-online",
+    OFFLINE: "badge-offline",
+    MAINTENANCE: "badge-maintenance",
+    RETIRED: "badge-retired",
+  };
+  return statusColors[status] || "badge-default";
+};
+
 function AssetTable({ assets, isLoading, error, onRetry, searchTerm, onEdit, onDelete }) {
   if (isLoading) {
     return (
       <div className="asset-table-wrap" aria-label="Loading assets" aria-busy="true">
         <table className="asset-table asset-table-skeleton">
-          <thead><tr><th>Name</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Owner</th><th>Created at</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Serial</th><th>Name</th><th>Type</th><th>Status</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Created</th><th>Actions</th></tr></thead>
           <tbody>
             {[0, 1, 2, 3, 4].map((row) => (
-              <tr key={row}><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td></tr>
+              <tr key={row}><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td></tr>
             ))}
           </tbody>
         </table>
@@ -50,17 +60,19 @@ function AssetTable({ assets, isLoading, error, onRetry, searchTerm, onEdit, onD
     <div className="asset-table-wrap">
       <table className="asset-table">
         <thead>
-          <tr><th>Name</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Owner</th><th>Created at</th><th>Actions</th></tr>
+          <tr><th>Serial</th><th>Name</th><th>Type</th><th>Status</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Created</th><th>Actions</th></tr>
         </thead>
         <tbody>
           {assets.map((asset) => (
             <tr key={asset.id}>
+              <td data-label="Serial"><code>{asset.serial_number}</code></td>
               <td data-label="Name"><strong>{asset.name}</strong></td>
+              <td data-label="Type"><span className="asset-type-badge">{asset.asset_type}</span></td>
+              <td data-label="Status"><span className={`status-badge ${getStatusBadge(asset.status)}`}>{asset.status}</span></td>
               <td data-label="Description">{asset.description || "—"}</td>
               <td data-label="Latitude">{formatCoordinates(asset.latitude)}</td>
               <td data-label="Longitude">{formatCoordinates(asset.longitude)}</td>
-              <td data-label="Owner">{getOwner(asset)}</td>
-              <td data-label="Created at">{formatDate(asset.created_at)}</td>
+              <td data-label="Created">{formatDate(asset.created_at)}</td>
               <td data-label="Actions">
                 <div className="asset-actions">
                   <button

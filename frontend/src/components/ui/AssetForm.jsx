@@ -1,10 +1,17 @@
 import { useState } from "react";
 
+// Backend enum values
+const ASSET_TYPES = ["DRONE", "VEHICLE", "CAMERA", "SENSOR", "INFRASTRUCTURE", "OTHER"];
+const ASSET_STATUS = ["ONLINE", "OFFLINE", "MAINTENANCE", "RETIRED"];
+
 function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "create" }) {
   // Initialize form data based on mode and initialData
   const getInitialFormData = () => {
     if (mode === "edit" && initialData) {
       return {
+        serial_number: initialData.serial_number || "",
+        asset_type: initialData.asset_type || "",
+        status: initialData.status || "ONLINE",
         name: initialData.name || "",
         description: initialData.description || "",
         latitude: initialData.latitude !== undefined ? String(initialData.latitude) : "",
@@ -12,6 +19,9 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
       };
     }
     return {
+      serial_number: "",
+      asset_type: "",
+      status: "ONLINE",
       name: "",
       description: "",
       latitude: "",
@@ -36,7 +46,30 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
   const validateForm = () => {
     const newErrors = {};
 
-    // Name validation
+    // Serial Number validation (3-20 chars)
+    if (!formData.serial_number.trim()) {
+      newErrors.serial_number = "Serial number is required";
+    } else if (formData.serial_number.trim().length < 3) {
+      newErrors.serial_number = "Serial number must be at least 3 characters";
+    } else if (formData.serial_number.trim().length > 20) {
+      newErrors.serial_number = "Serial number must not exceed 20 characters";
+    }
+
+    // Asset Type validation
+    if (!formData.asset_type) {
+      newErrors.asset_type = "Asset type is required";
+    } else if (!ASSET_TYPES.includes(formData.asset_type)) {
+      newErrors.asset_type = "Invalid asset type";
+    }
+
+    // Status validation
+    if (!formData.status) {
+      newErrors.status = "Status is required";
+    } else if (!ASSET_STATUS.includes(formData.status)) {
+      newErrors.status = "Invalid status";
+    }
+
+    // Name validation (3-100 chars)
     if (!formData.name.trim()) {
       newErrors.name = "Asset name is required";
     } else if (formData.name.trim().length < 3) {
@@ -45,8 +78,8 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
       newErrors.name = "Asset name must not exceed 100 characters";
     }
 
-    // Description validation
-    if (formData.description.length > 1000) {
+    // Description validation (optional, but max length if provided)
+    if (formData.description.trim().length > 1000) {
       newErrors.description = "Description must not exceed 1000 characters";
     }
 
@@ -86,6 +119,9 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
     }
 
     const submitData = {
+      serial_number: formData.serial_number.trim(),
+      asset_type: formData.asset_type,
+      status: formData.status,
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       latitude: Number(formData.latitude),
@@ -103,7 +139,7 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
       <p className="asset-form-subtitle">
         {isEditMode
           ? "Update the asset details and location coordinates."
-          : "Add a new asset to your account with location coordinates."}
+          : "Add a new asset to your account with all required information."}
       </p>
 
       {error && (
@@ -111,6 +147,83 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
           {error}
         </p>
       )}
+
+      <div className="asset-form-field">
+        <label htmlFor="asset-serial-number">
+          Serial Number <span className="field-required">*</span>
+        </label>
+        <input
+          id="asset-serial-number"
+          name="serial_number"
+          type="text"
+          value={formData.serial_number}
+          onChange={handleChange}
+          disabled={isLoading || (isEditMode && initialData)}
+          placeholder="e.g., SN-001"
+          aria-invalid={errors.serial_number ? "true" : "false"}
+          aria-describedby={errors.serial_number ? "serial_number-error" : undefined}
+        />
+        {errors.serial_number && (
+          <p id="serial_number-error" className="field-error" role="alert">
+            {errors.serial_number}
+          </p>
+        )}
+      </div>
+
+      <div className="asset-form-row">
+        <div className="asset-form-field">
+          <label htmlFor="asset-type">
+            Asset Type <span className="field-required">*</span>
+          </label>
+          <select
+            id="asset-type"
+            name="asset_type"
+            value={formData.asset_type}
+            onChange={handleChange}
+            disabled={isLoading}
+            aria-invalid={errors.asset_type ? "true" : "false"}
+            aria-describedby={errors.asset_type ? "asset_type-error" : undefined}
+          >
+            <option value="">Select an asset type</option>
+            {ASSET_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          {errors.asset_type && (
+            <p id="asset_type-error" className="field-error" role="alert">
+              {errors.asset_type}
+            </p>
+          )}
+        </div>
+
+        <div className="asset-form-field">
+          <label htmlFor="asset-status">
+            Status <span className="field-required">*</span>
+          </label>
+          <select
+            id="asset-status"
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            disabled={isLoading}
+            aria-invalid={errors.status ? "true" : "false"}
+            aria-describedby={errors.status ? "status-error" : undefined}
+          >
+            {ASSET_STATUS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+          {errors.status && (
+            <p id="status-error" className="field-error" role="alert">
+              {errors.status}
+            </p>
+          )}
+        </div>
+      </div>
 
       <div className="asset-form-field">
         <label htmlFor="asset-name">
@@ -123,6 +236,7 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
           value={formData.name}
           onChange={handleChange}
           disabled={isLoading}
+          placeholder="e.g., Surveillance Camera 01"
           aria-invalid={errors.name ? "true" : "false"}
           aria-describedby={errors.name ? "name-error" : undefined}
         />
@@ -142,6 +256,7 @@ function AssetForm({ onSubmit, onCancel, isLoading, error, initialData, mode = "
           value={formData.description}
           onChange={handleChange}
           disabled={isLoading}
+          placeholder="Optional description"
           aria-invalid={errors.description ? "true" : "false"}
           aria-describedby={errors.description ? "description-error" : undefined}
         />
